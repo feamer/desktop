@@ -11,12 +11,11 @@ public class BackgroundService extends Thread {
 
 		FeamerWebsocketClient client = null;
 		
-		HashMap<String, String> headers = new HashMap<>();
-		headers.put("Authorization", FeamerPreferences.getInstance().getToken());
-		
 		while (true) {
 			try {
 				if(client == null || !client.isOpen() && !client.isConnecting()) {
+					HashMap<String, String> headers = new HashMap<>();
+					headers.put("Authorization", FeamerPreferences.getInstance().getToken());
 					try {
 						client = new FeamerWebsocketClient(new URI(FeamerPreferences.getInstance().get(FeamerPreferences.ENDPOINT).replaceFirst("http", "ws")+"/ws"), headers);
 						client.connect();

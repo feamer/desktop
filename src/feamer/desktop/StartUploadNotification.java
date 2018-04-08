@@ -24,6 +24,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JProgressBar;
@@ -34,11 +36,12 @@ public class StartUploadNotification extends JFrame {
 
 	private File currentFile;
 
+	private String user = null;
 
 	/**
 	 * Create the frame.
 	 */
-	public StartUploadNotification(String filepath) {
+	public StartUploadNotification(String filepath, String type) {
 
 		setType(javax.swing.JFrame.Type.UTILITY);
 		setResizable(false);
@@ -82,14 +85,13 @@ public class StartUploadNotification extends JFrame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		UIManager.put("ProgressBar.background", new Color(10,10,10));
+
+		UIManager.put("ProgressBar.background", new Color(10, 10, 10));
 		UIManager.put("ProgressBar.foreground", new Color(0, 173, 239));
-		UIManager.put("ProgressBar.selectionBackground", new Color(10,10,10));
+		UIManager.put("ProgressBar.selectionBackground", new Color(10, 10, 10));
 		UIManager.put("ProgressBar.selectionForeground", new Color(0, 173, 239));
-		 try {
-			UIManager.setLookAndFeel(
-			            UIManager.getCrossPlatformLookAndFeelClassName());
+		try {
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
 			e.printStackTrace();
@@ -99,6 +101,34 @@ public class StartUploadNotification extends JFrame {
 		contentPane.add(progressBar);
 		progressBar.setVisible(false);
 
+		StartUploadNotification self = this;
+
+		JComboBox comboBox = new JComboBox();
+		comboBox.setVisible(false);
+		comboBox.setFont(new Font("Arial", Font.PLAIN, 11));
+		comboBox.setBounds(118, 97, 205, 25);
+		FeamerPreferences.getInstance().getFriends(friends -> {
+			comboBox.addItem("select a friend ...");
+			for (String friend : friends) {
+				comboBox.addItem(friend);
+			}
+		});
+		comboBox.addActionListener(al -> {
+			if (comboBox.getSelectedIndex() > 0) {
+				this.user = String.valueOf(comboBox.getSelectedItem());
+				if (self.currentFile != null) {
+					FeamerPreferences.getInstance().transferFileToFriend(self.currentFile, this.user, progress -> {
+						progressBar.setValue((int) (progress));
+						progressBar.setVisible(true);
+					}, true);
+				}else {
+					
+				}
+			}
+
+		});
+		contentPane.add(comboBox);
+
 		JLabel lblNewLabel = new JLabel("Drop files here");
 		lblNewLabel.setForeground(Color.WHITE);
 		lblNewLabel.setBackground(SystemColor.control);
@@ -106,7 +136,7 @@ public class StartUploadNotification extends JFrame {
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel.setBounds(118, 29, 205, 62);
 		contentPane.add(lblNewLabel);
-		
+
 		lblNewLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
 
 		JLabel lblAccept = new JLabel("transfer");
@@ -117,29 +147,34 @@ public class StartUploadNotification extends JFrame {
 		lblAccept.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		contentPane.add(lblAccept);
 
-		StartUploadNotification self = this;
-		
 		lblNewLabel.setTransferHandler(new FileDropHandler(files -> {
 			if (files == null || files.size() == 0) {
 				return;
 			}
 			this.currentFile = files.get(0);
 			lblNewLabel.setText(files.get(0).getName());
+			
+			if(type != null && type.equals("friend")) {
+				FeamerPreferences.getInstance().transferFileToFriend(self.currentFile, this.user, progress -> {
+					progressBar.setValue((int) (progress));
+					progressBar.setVisible(true);
+				}, true);
+			}
 		}));
-		
+
 		lblAccept.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				FeamerPreferences.getInstance().transferFile(self.currentFile, progress -> {
-					progressBar.setValue((int)(progress));
+					progressBar.setValue((int) (progress));
 					progressBar.setVisible(true);
-					if(progress>99) {
+					if (progress > 99) {
 						self.dispose();
 					}
-				});
+				}, false);
 			}
 		});
-		
+
 		JLabel lblDecline = new JLabel("cancel");
 		lblDecline.addMouseListener(new MouseAdapter() {
 			@Override
@@ -154,23 +189,28 @@ public class StartUploadNotification extends JFrame {
 		lblDecline.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		StartUploadNotification rn = this;
 
-		if(filepath != null) {
-			this.currentFile = new File(filepath);
-			lblNewLabel.setText(this.currentFile.getName());
-			FeamerPreferences.getInstance().transferFile(self.currentFile, progress -> {
-				progressBar.setValue((int)(progress));
-				progressBar.setVisible(true);
-				if(progress>99) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					System.exit(1);
+		if (type != null) {
+			if (type.equals("friend")) {
+				comboBox.setVisible(true);
+				lblAccept.setVisible(false);
+				lblDecline.setVisible(false);
+				if (filepath != null) {
+					this.currentFile = new File(filepath);
+					lblNewLabel.setText(this.currentFile.getName());
 				}
-			});
+			} else {
+				if (filepath != null) {
+					this.currentFile = new File(filepath);
+					lblNewLabel.setText(this.currentFile.getName());
+					FeamerPreferences.getInstance().transferFile(self.currentFile, progress -> {
+						progressBar.setValue((int) (progress));
+						progressBar.setVisible(true);
+
+					}, true);
+				}
+			}
 		}
-		
+
 		contentPane.add(lblDecline);
 	}
 

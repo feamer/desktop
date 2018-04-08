@@ -38,27 +38,40 @@ public class Main {
 	
 	public static void main(String[] args) {
 
+		/*PrintStream printStream;
+		try {
+			printStream = new PrintStream(new FileOutputStream("debugLog.txt", true));
+			System.setOut(printStream);
+			
+			printStream = new PrintStream(new FileOutputStream("errorLog.txt", true));
+			System.setErr(printStream);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}*/
+		
 		queue = new NotificationQueue();
 		if(args.length == 2) {
 			FeamerPreferences.getInstance().checkAndUpdateToken(value -> {});
 			
 			if(args[0].equals("me")) {
-				StartUploadNotification window = new StartUploadNotification(args[1]);
+				StartUploadNotification window = new StartUploadNotification(args[1], "me");
+				Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
+				queue.add(note);
+			}else if(args[0].equals("friend")) {
+				StartUploadNotification window = new StartUploadNotification(args[1], "friend");
 				Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
 				queue.add(note);
 			}
 			
 			return;
 		}
-		
-		PrintStream printStream;
-		try {
-			printStream = new PrintStream(new FileOutputStream("someText.txt", true));
-			System.setOut(printStream);
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		if(args.length == 1 && args[0].equals("friend")) {
+			StartUploadNotification window = new StartUploadNotification(null, "friend");
+			Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
+			queue.add(note);
 		}
+		
+		
 		
 
 		
@@ -101,7 +114,7 @@ public class Main {
 		MenuItem startUploadItem = new MenuItem("transfer file");
 		
 		startUploadItem.addActionListener((ActionEvent ae)->{
-			StartUploadNotification window = new StartUploadNotification(null);
+			StartUploadNotification window = new StartUploadNotification(null, null);
 			Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
 			queue = new NotificationQueue();
 			queue.add(note);

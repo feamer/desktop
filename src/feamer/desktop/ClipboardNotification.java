@@ -116,7 +116,7 @@ public class ClipboardNotification extends JFrame {
 
 		contentPane.add(lblDecline);
 		
-		JLabel lblShowInExplorer = new JLabel("show file");
+		JLabel lblShowInExplorer = new JLabel("show folder");
 		lblShowInExplorer.setHorizontalAlignment(SwingConstants.LEFT);
 		lblShowInExplorer.setForeground(new Color(0, 173, 239));
 		lblShowInExplorer.setFont(new Font("Arial", Font.BOLD, 16));

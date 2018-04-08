@@ -43,6 +43,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import javax.swing.JProgressBar;
+import javax.swing.JComboBox;
 
 public class RequestNotification extends JFrame {
 
@@ -129,8 +130,6 @@ public class RequestNotification extends JFrame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-        
 		
 		JLabel lblHeyJrgWhat = new JLabel("user wants to share "+name+" with you!");
 		lblHeyJrgWhat.setForeground(Color.WHITE);
@@ -160,7 +159,9 @@ public class RequestNotification extends JFrame {
 						System.out.println(response2);
 						
 						BufferedInputStream bis = new BufferedInputStream(response2.getEntity().getContent());
-						String filePath = name;
+						String filePath = "data/"+name;
+						File directory = new File("data/");
+						directory.mkdirs();
 						File outputFile = new File(filePath);
 						BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile));
 						int inByte;

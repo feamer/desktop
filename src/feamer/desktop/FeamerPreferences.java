@@ -112,11 +112,13 @@ public class FeamerPreferences {
 			String result = IOUtils.toString(response2.getEntity().getContent());
 			System.out.println("received token: " + result);
 			System.out.println("status code: " + response2.getStatusLine().getStatusCode());
-			token = result;
-			if(response2.getStatusLine().getStatusCode() == 200) {
+			
+			this.token = result;
+			
+			if (response2.getStatusLine().getStatusCode() == 200) {
 				callback.accept(true);
 				System.out.println("success");
-			}else {
+			} else {
 				callback.accept(false);
 			}
 			response2.close();
@@ -128,9 +130,9 @@ public class FeamerPreferences {
 
 		callback.accept(false);
 	}
-	
-	public void transferFile(File file, Consumer<Integer> callback) {
-		new Thread(()->{
+
+	public void transferFile(File file, Consumer<Integer> callback, boolean terminateAtEnd) {
+		new Thread(() -> {
 			CloseableHttpClient httpclient = HttpClients.createDefault();
 			HttpPost httpPost = new HttpPost(get(ENDPOINT) + "/rest/upload");
 			httpPost.addHeader("Authorization", token);
@@ -142,23 +144,57 @@ public class FeamerPreferences {
 				String result = IOUtils.toString(response2.getEntity().getContent());
 				System.out.println("received token: " + result);
 				System.out.println("status code: " + response2.getStatusLine().getStatusCode());
-				
-				if(response2.getStatusLine().getStatusCode() == 200) {
+
+				if (response2.getStatusLine().getStatusCode() == 200) {
 					System.out.println("success");
-				}else {
+				} else {
 				}
 				response2.close();
+				if (terminateAtEnd) {
+					System.exit(1);
+				}
 				return;
 			} catch (IOException e2) {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
 			}
-			
+
 		}).start();
-		
 
 	}
 	
+	public void transferFileToFriend(File file, String user, Consumer<Integer> callback, boolean terminateAtEnd) {
+		new Thread(() -> {
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httpPost = new HttpPost(get(ENDPOINT) + "/rest/share?name="+user);
+			httpPost.addHeader("Authorization", token);
+			httpPost.addHeader("Filename", file.getName());
+			httpPost.setEntity(new FileEntity(file, callback));
+
+			try {
+				CloseableHttpResponse response2 = httpclient.execute(httpPost);
+				String result = IOUtils.toString(response2.getEntity().getContent());
+				System.out.println("received token: " + result);
+				System.out.println("status code: " + response2.getStatusLine().getStatusCode());
+
+				if (response2.getStatusLine().getStatusCode() == 200) {
+					System.out.println("success");
+				} else {
+				}
+				response2.close();
+				if (terminateAtEnd) {
+					System.exit(1);
+				}
+				return;
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+
+		}).start();
+
+	}
+
 	public void getUserId(Consumer<String> callback) {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		HttpGet httpGet = new HttpGet(get(ENDPOINT) + "/rest/id");
@@ -169,12 +205,12 @@ public class FeamerPreferences {
 			String result = IOUtils.toString(response2.getEntity().getContent());
 			System.out.println("received user id: " + result);
 			System.out.println("status code: " + response2.getStatusLine().getStatusCode());
-			
-			if(response2.getStatusLine().getStatusCode() == 200) {
+
+			if (response2.getStatusLine().getStatusCode() == 200) {
 				System.out.println("success");
 				callback.accept(result);
-				
-			}else {
+
+			} else {
 			}
 			response2.close();
 			return;
@@ -184,7 +220,7 @@ public class FeamerPreferences {
 		}
 
 	}
-	
+
 	public void getFriends(Consumer<String[]> callback) {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		HttpGet httpGet = new HttpGet(get(ENDPOINT) + "/rest/friends");
@@ -195,17 +231,17 @@ public class FeamerPreferences {
 			String result = IOUtils.toString(response2.getEntity().getContent());
 			System.out.println("received user id: " + result);
 			System.out.println("status code: " + response2.getStatusLine().getStatusCode());
-			
-			if(response2.getStatusLine().getStatusCode() == 200) {
+
+			if (response2.getStatusLine().getStatusCode() == 200) {
 				System.out.println("success");
 				JSONArray json = new JSONArray(result);
 				String[] friends = new String[json.length()];
-				for(int i=0; i<json.length(); i++) {
+				for (int i = 0; i < json.length(); i++) {
 					friends[i] = json.getString(i);
 				}
 				callback.accept(friends);
-				
-			}else {
+
+			} else {
 			}
 			response2.close();
 			return;
@@ -216,7 +252,6 @@ public class FeamerPreferences {
 
 	}
 
-	
 	public String getToken() {
 		return this.token;
 	}

@@ -113,8 +113,7 @@ public class ConfigWindow {
 		FeamerPreferences.getInstance().getUserId(id -> {
 			BufferedImage image;
 			try {
-				image = Main.generateQRCodeImage(
-						FeamerPreferences.getInstance().get(FeamerPreferences.ENDPOINT) + "/rest/addFriend?id=" + id);
+				image = Main.generateQRCodeImage(id);
 				JPanel qrPanel = new JPanel() {
 					@Override
 					protected void paintComponent(Graphics g) {

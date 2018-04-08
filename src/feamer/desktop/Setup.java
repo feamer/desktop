@@ -17,7 +17,7 @@ public class Setup {
 			String path = Setup.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 			try {
 				String decodedPath = URLDecoder.decode(path, "UTF-8");
-				ShellLink sl = ShellLink.createLink(workingDirectory+"\\feamer_me.bat").setWorkingDir("")
+				ShellLink sl = ShellLink.createLink(workingDirectory+"\\feamer_me.exe").setWorkingDir("")
 						.setIconLocation(Paths.get(".").toAbsolutePath().normalize().toString() + "\\feamer.ico");
 				// sl.getHeader().setIconIndex(128);
 				sl.getConsoleData().setFont(mslinks.extra.ConsoleData.Font.Consolas).setFontSize(24).setTextColor(5);
@@ -29,19 +29,19 @@ public class Setup {
 					e.printStackTrace();
 				}
 
-				ShellLink sl2 = ShellLink.createLink(workingDirectory+"\\feamer_friends.bat").setWorkingDir("")
+				ShellLink sl2 = ShellLink.createLink(workingDirectory+"\\feamer_friend.exe").setWorkingDir("")
 						.setIconLocation(Paths.get(".").toAbsolutePath().normalize().toString() + "\\feamer.ico");
 				// sl.getHeader().setIconIndex(128);
 				sl2.getConsoleData().setFont(mslinks.extra.ConsoleData.Font.Consolas).setFontSize(24).setTextColor(5);
 
 				try {
-					sl2.saveTo(System.getenv("APPDATA") + "\\Microsoft\\Windows\\SendTo\\feamer (nearby friends).lnk");
+					sl2.saveTo(System.getenv("APPDATA") + "\\Microsoft\\Windows\\SendTo\\feamer (my friends).lnk");
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
-				ShellLink sl3 = ShellLink.createLink(workingDirectory+"\\feamer_all.bat").setWorkingDir("")
+				/*ShellLink sl3 = ShellLink.createLink(workingDirectory+"\\feamer_all.bat").setWorkingDir("")
 						.setIconLocation(Paths.get(".").toAbsolutePath().normalize().toString() + "\\feamer.ico");
 				// sl.getHeader().setIconIndex(128);
 				sl3.getConsoleData().setFont(mslinks.extra.ConsoleData.Font.Consolas).setFontSize(24).setTextColor(5);
@@ -51,7 +51,7 @@ public class Setup {
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 			} catch (UnsupportedEncodingException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
