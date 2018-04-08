@@ -30,6 +30,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 
 import org.apache.commons.io.IOUtils;
@@ -53,7 +55,7 @@ public class RequestNotification extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					RequestNotification frame = new RequestNotification("", 0, "");
+					RequestNotification frame = new RequestNotification("", 0, "", 0);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -65,7 +67,7 @@ public class RequestNotification extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public RequestNotification(String name, long timestamp, String endpoint) {
+	public RequestNotification(String name, long timestamp, String endpoint, long size) {
 
 		setType(javax.swing.JFrame.Type.UTILITY);
 		setResizable(false);
@@ -91,9 +93,27 @@ public class RequestNotification extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
+		UIManager.put("ProgressBar.background", new Color(10,10,10));
+		UIManager.put("ProgressBar.foreground", new Color(0, 173, 239));
+		UIManager.put("ProgressBar.selectionBackground", new Color(10,10,10));
+		UIManager.put("ProgressBar.selectionForeground", new Color(0, 173, 239));
+		 try {
+			UIManager.setLookAndFeel(
+			            UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+		JProgressBar progressBar = new JProgressBar();
+		progressBar.setBounds(118, 97, 183, 25);
+		progressBar.setVisible(false);
+		contentPane.add(progressBar);
+		
 		BufferedImage image;
 		try {
 			image = ImageIO.read(getClass().getClassLoader().getResource("feamer.gif"));
+			
+			
 			JPanel pane = new JPanel() {
 	            @Override
 	            protected void paintComponent(Graphics g) {
@@ -129,34 +149,45 @@ public class RequestNotification extends JFrame {
 		lblAccept.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				CloseableHttpClient httpclient = HttpClients.createDefault();
-				HttpGet httpGet = new HttpGet(FeamerPreferences.getInstance().get(FeamerPreferences.ENDPOINT) + ""+endpoint);
-				httpGet.addHeader("Authorization", FeamerPreferences.getInstance().getToken());
+				new Thread(()->{
+					CloseableHttpClient httpclient = HttpClients.createDefault();
+					HttpGet httpGet = new HttpGet(FeamerPreferences.getInstance().get(FeamerPreferences.ENDPOINT) + ""+endpoint);
+					httpGet.addHeader("Authorization", FeamerPreferences.getInstance().getToken());
 
-				try {
-					CloseableHttpResponse response2 = httpclient.execute(httpGet);
+					try {
+						CloseableHttpResponse response2 = httpclient.execute(httpGet);
+						
+						System.out.println(response2);
+						
+						BufferedInputStream bis = new BufferedInputStream(response2.getEntity().getContent());
+						String filePath = name;
+						File outputFile = new File(filePath);
+						BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile));
+						int inByte;
+						double numberOfBytes = 0;
+						progressBar.setVisible(true);
+						while((inByte = bis.read()) != -1) {
+							bos.write(inByte);
+							numberOfBytes++;
+							if(true) {
+								progressBar.setValue((int)(numberOfBytes/size*100));
+							}
+						}
+						bis.close();
+						bos.close();
+						self.dispose();
+						
+						
+						response2.close();
 					
-					System.out.println(response2);
-					
-					BufferedInputStream bis = new BufferedInputStream(response2.getEntity().getContent());
-					String filePath = name;
-					File outputFile = new File(filePath);
-					BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile));
-					int inByte;
-					while((inByte = bis.read()) != -1) bos.write(inByte);
-					bis.close();
-					bos.close();
-					self.dispose();
-					
-					
-					response2.close();
+						copyFileToClipboard(outputFile);
+						
+						return;
+					}catch (Exception e) {
+						e.printStackTrace();
+					}
+				}).start();
 				
-					copyFileToClipboard(outputFile);
-					
-					return;
-				}catch (Exception e) {
-					e.printStackTrace();
-				}
 				
 			}
 		});

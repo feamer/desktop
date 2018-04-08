@@ -1,6 +1,7 @@
 package feamer.desktop;
 
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -9,10 +10,11 @@ import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
@@ -35,13 +37,36 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
+
+		queue = new NotificationQueue();
+		if(args.length == 2) {
+			FeamerPreferences.getInstance().checkAndUpdateToken(value -> {});
+			
+			if(args[0].equals("me")) {
+				StartUploadNotification window = new StartUploadNotification(args[1]);
+				Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
+				queue.add(note);
+			}
+			
+			return;
+		}
+		
+		PrintStream printStream;
+		try {
+			printStream = new PrintStream(new FileOutputStream("someText.txt", true));
+			System.setOut(printStream);
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+
 		
 		Setup.setup();
 		new BackgroundService().start();
 
 		createTrayIcon();
 		
-		queue = new NotificationQueue();
 
 	}
 
@@ -76,7 +101,7 @@ public class Main {
 		MenuItem startUploadItem = new MenuItem("transfer file");
 		
 		startUploadItem.addActionListener((ActionEvent ae)->{
-			StartUploadNotification window = new StartUploadNotification();
+			StartUploadNotification window = new StartUploadNotification(null);
 			Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
 			queue = new NotificationQueue();
 			queue.add(note);
@@ -111,8 +136,8 @@ public class Main {
 		configWindow.frmFeamer.setVisible(true);
 	}
 	
-	public static void requestNotification(String name, long timestamp, String endpoint) {
-		RequestNotification window = new RequestNotification(name, timestamp, endpoint);
+	public static void requestNotification(String name, long timestamp, String endpoint, long size) {
+		RequestNotification window = new RequestNotification(name, timestamp, endpoint, size);
 		Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 5000);
 		queue = new NotificationQueue();
 		queue.add(note);

@@ -64,6 +64,7 @@ public class ConfigWindow {
 		frmFeamer.setBounds(100, 100, 503, 327);
 		frmFeamer.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmFeamer.getContentPane().setLayout(null);
+		frmFeamer.setResizable(false);
 
 		tfUsername = new JTextField();
 		tfUsername.setToolTipText("Username");
@@ -112,7 +113,8 @@ public class ConfigWindow {
 		FeamerPreferences.getInstance().getUserId(id -> {
 			BufferedImage image;
 			try {
-				image = Main.generateQRCodeImage(id);
+				image = Main.generateQRCodeImage(
+						FeamerPreferences.getInstance().get(FeamerPreferences.ENDPOINT) + "/rest/addFriend?id=" + id);
 				JPanel qrPanel = new JPanel() {
 					@Override
 					protected void paintComponent(Graphics g) {
@@ -123,7 +125,7 @@ public class ConfigWindow {
 				qrPanel.setBackground(new Color(0, 0, 0, 0));
 				qrPanel.setBounds(270, 11, 178, 182);
 				frmFeamer.getContentPane().add(qrPanel);
-				
+
 				JLabel lblScanThisCode = new JLabel(
 						"<html>Scan this code from an <b>other device</b> to add an <b>other device</b> or <b>register a friend</b></html>");
 				lblScanThisCode.setHorizontalAlignment(SwingConstants.LEFT);
@@ -139,8 +141,6 @@ public class ConfigWindow {
 				e.printStackTrace();
 			}
 		});
-
-		
 
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {

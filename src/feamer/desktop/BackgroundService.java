@@ -16,7 +16,7 @@ public class BackgroundService extends Thread {
 		
 		while (true) {
 			try {
-				if(client == null || !client.isOpen()) {
+				if(client == null || !client.isOpen() && !client.isConnecting()) {
 					try {
 						client = new FeamerWebsocketClient(new URI(FeamerPreferences.getInstance().get(FeamerPreferences.ENDPOINT).replaceFirst("http", "ws")+"/ws"), headers);
 						client.connect();
@@ -25,7 +25,7 @@ public class BackgroundService extends Thread {
 						e.printStackTrace();
 					}
 				}
-				Thread.sleep(1000);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

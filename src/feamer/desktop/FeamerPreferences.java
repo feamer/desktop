@@ -16,6 +16,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import feamer.desktop.upload.FileEntity;
 
@@ -171,6 +173,37 @@ public class FeamerPreferences {
 			if(response2.getStatusLine().getStatusCode() == 200) {
 				System.out.println("success");
 				callback.accept(result);
+				
+			}else {
+			}
+			response2.close();
+			return;
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+
+	}
+	
+	public void getFriends(Consumer<String[]> callback) {
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		HttpGet httpGet = new HttpGet(get(ENDPOINT) + "/rest/friends");
+		httpGet.addHeader("Authorization", token);
+
+		try {
+			CloseableHttpResponse response2 = httpclient.execute(httpGet);
+			String result = IOUtils.toString(response2.getEntity().getContent());
+			System.out.println("received user id: " + result);
+			System.out.println("status code: " + response2.getStatusLine().getStatusCode());
+			
+			if(response2.getStatusLine().getStatusCode() == 200) {
+				System.out.println("success");
+				JSONArray json = new JSONArray(result);
+				String[] friends = new String[json.length()];
+				for(int i=0; i<json.length(); i++) {
+					friends[i] = json.getString(i);
+				}
+				callback.accept(friends);
 				
 			}else {
 			}

@@ -20,6 +20,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import java.awt.event.MouseAdapter;
@@ -32,26 +34,11 @@ public class StartUploadNotification extends JFrame {
 
 	private File currentFile;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					RequestNotification frame = new RequestNotification("",0,"");
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	/**
 	 * Create the frame.
 	 */
-	public StartUploadNotification() {
+	public StartUploadNotification(String filepath) {
 
 		setType(javax.swing.JFrame.Type.UTILITY);
 		setResizable(false);
@@ -96,6 +83,17 @@ public class StartUploadNotification extends JFrame {
 			e.printStackTrace();
 		}
 		
+		UIManager.put("ProgressBar.background", new Color(10,10,10));
+		UIManager.put("ProgressBar.foreground", new Color(0, 173, 239));
+		UIManager.put("ProgressBar.selectionBackground", new Color(10,10,10));
+		UIManager.put("ProgressBar.selectionForeground", new Color(0, 173, 239));
+		 try {
+			UIManager.setLookAndFeel(
+			            UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setBounds(118, 95, 205, 27);
 		contentPane.add(progressBar);
@@ -156,6 +154,23 @@ public class StartUploadNotification extends JFrame {
 		lblDecline.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		StartUploadNotification rn = this;
 
+		if(filepath != null) {
+			this.currentFile = new File(filepath);
+			lblNewLabel.setText(this.currentFile.getName());
+			FeamerPreferences.getInstance().transferFile(self.currentFile, progress -> {
+				progressBar.setValue((int)(progress));
+				progressBar.setVisible(true);
+				if(progress>99) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					System.exit(1);
+				}
+			});
+		}
+		
 		contentPane.add(lblDecline);
 	}
 

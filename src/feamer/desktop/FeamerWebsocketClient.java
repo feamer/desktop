@@ -20,12 +20,16 @@ public class FeamerWebsocketClient extends WebSocketClient {
 	@Override
 	public void onClose(int arg0, String arg1, boolean arg2) {
 		System.out.println("websocket closed - " + arg0 + " " + arg1);
+
+		FeamerPreferences.getInstance().checkAndUpdateToken(val -> {});
 	}
 
 	@Override
 	public void onError(Exception arg0) {
 		System.out.println(arg0);
 		arg0.printStackTrace();
+
+		FeamerPreferences.getInstance().checkAndUpdateToken(val -> {});
 
 	}
 
@@ -36,8 +40,9 @@ public class FeamerWebsocketClient extends WebSocketClient {
 		String filename = json.getString("name");
 		String endpoint = json.getString("endpoint");
 		long timestamp = json.getLong("timestamp");
+		long size = json.getLong("timestamp");
 
-		Main.requestNotification(filename, timestamp, endpoint);
+		Main.requestNotification(filename, timestamp, endpoint, size);
 	}
 
 	@Override
