@@ -11,11 +11,13 @@ import java.util.prefs.Preferences;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+
+import feamer.desktop.upload.FileEntity;
 
 public class FeamerPreferences {
 
@@ -125,21 +127,51 @@ public class FeamerPreferences {
 		callback.accept(false);
 	}
 	
-	public void transferFile(File file, Consumer<Float> callback) {
+	public void transferFile(File file, Consumer<Integer> callback) {
+		new Thread(()->{
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httpPost = new HttpPost(get(ENDPOINT) + "/rest/upload");
+			httpPost.addHeader("Authorization", token);
+			httpPost.addHeader("Filename", file.getName());
+			httpPost.setEntity(new FileEntity(file, callback));
+
+			try {
+				CloseableHttpResponse response2 = httpclient.execute(httpPost);
+				String result = IOUtils.toString(response2.getEntity().getContent());
+				System.out.println("received token: " + result);
+				System.out.println("status code: " + response2.getStatusLine().getStatusCode());
+				
+				if(response2.getStatusLine().getStatusCode() == 200) {
+					System.out.println("success");
+				}else {
+				}
+				response2.close();
+				return;
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
+		}).start();
+		
+
+	}
+	
+	public void getUserId(Consumer<String> callback) {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
-		HttpPost httpPost = new HttpPost(get(ENDPOINT) + "/rest/upload");
-		httpPost.addHeader("Authorization", token);
-		httpPost.addHeader("Filename", file.getName());
-		httpPost.setEntity(new FileEntity(file));
+		HttpGet httpGet = new HttpGet(get(ENDPOINT) + "/rest/id");
+		httpGet.addHeader("Authorization", token);
 
 		try {
-			CloseableHttpResponse response2 = httpclient.execute(httpPost);
+			CloseableHttpResponse response2 = httpclient.execute(httpGet);
 			String result = IOUtils.toString(response2.getEntity().getContent());
-			System.out.println("received token: " + result);
+			System.out.println("received user id: " + result);
 			System.out.println("status code: " + response2.getStatusLine().getStatusCode());
-			token = result;
+			
 			if(response2.getStatusLine().getStatusCode() == 200) {
 				System.out.println("success");
+				callback.accept(result);
+				
 			}else {
 			}
 			response2.close();
@@ -151,4 +183,8 @@ public class FeamerPreferences {
 
 	}
 
+	
+	public String getToken() {
+		return this.token;
+	}
 }

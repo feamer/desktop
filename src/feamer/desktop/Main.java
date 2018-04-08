@@ -7,10 +7,21 @@ import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import net.sf.jcarrierpigeon.Notification;
 import net.sf.jcarrierpigeon.NotificationQueue;
@@ -20,9 +31,11 @@ public class Main {
 	public static ConfigWindow configWindow = null;
 	
 	private static NotificationQueue queue;
+	private static Notification currentNotification;
 	
 	
 	public static void main(String[] args) {
+		
 		Setup.setup();
 		new BackgroundService().start();
 
@@ -65,6 +78,7 @@ public class Main {
 		startUploadItem.addActionListener((ActionEvent ae)->{
 			StartUploadNotification window = new StartUploadNotification();
 			Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
+			queue = new NotificationQueue();
 			queue.add(note);
 		});
 		
@@ -96,6 +110,20 @@ public class Main {
 		configWindow = new ConfigWindow();
 		configWindow.frmFeamer.setVisible(true);
 	}
+	
+	public static void requestNotification(String name, long timestamp, String endpoint) {
+		RequestNotification window = new RequestNotification(name, timestamp, endpoint);
+		Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 5000);
+		queue = new NotificationQueue();
+		queue.add(note);
+	}
+	
+	public static void clipboardNotification(File file) {
+		ClipboardNotification window = new ClipboardNotification(file);
+		Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 5000);
+		queue = new NotificationQueue();
+		queue.add(note);
+	}
 
 	// Obtain the image URL
 	protected static Image createImage(String path, String description) {
@@ -108,4 +136,14 @@ public class Main {
 			return (new ImageIcon(imageURL, description)).getImage();
 		}
 	}
+	
+	public static BufferedImage generateQRCodeImage(String text)
+            throws WriterException, IOException {
+		
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 200, 200);
+
+        return MatrixToImageWriter.toBufferedImage(bitMatrix);
+    }
+
 }

@@ -8,20 +8,39 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.SwingConstants;
-import javax.swing.JButton;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import javax.swing.border.EmptyBorder;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import javax.swing.JProgressBar;
 
 public class RequestNotification extends JFrame {
 
@@ -34,7 +53,7 @@ public class RequestNotification extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					RequestNotification frame = new RequestNotification();
+					RequestNotification frame = new RequestNotification("", 0, "");
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -46,7 +65,7 @@ public class RequestNotification extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public RequestNotification() {
+	public RequestNotification(String name, long timestamp, String endpoint) {
 
 		setType(javax.swing.JFrame.Type.UTILITY);
 		setResizable(false);
@@ -93,22 +112,56 @@ public class RequestNotification extends JFrame {
 
         
 		
-		JLabel lblHeyJrgWhat = new JLabel("user wants to share filename with you!");
+		JLabel lblHeyJrgWhat = new JLabel("user wants to share "+name+" with you!");
 		lblHeyJrgWhat.setForeground(Color.WHITE);
 		lblHeyJrgWhat.setFont(new Font("Arial", Font.BOLD, 16));
 		lblHeyJrgWhat.setBounds(118, 29, 205, 67);
 		lblHeyJrgWhat.setUI(MultiLineLabelUI.labelUI);
 		contentPane.add(lblHeyJrgWhat);
-		
+
+		RequestNotification self = this;
 		JLabel lblAccept = new JLabel("accept");
 		lblAccept.setHorizontalAlignment(SwingConstants.CENTER);
 		lblAccept.setForeground(new Color(0,173,239));
 		lblAccept.setFont(new Font("Arial", Font.BOLD, 16));
 		lblAccept.setBounds(118, 97, 79, 25);
 		lblAccept.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		lblAccept.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				CloseableHttpClient httpclient = HttpClients.createDefault();
+				HttpGet httpGet = new HttpGet(FeamerPreferences.getInstance().get(FeamerPreferences.ENDPOINT) + ""+endpoint);
+				httpGet.addHeader("Authorization", FeamerPreferences.getInstance().getToken());
+
+				try {
+					CloseableHttpResponse response2 = httpclient.execute(httpGet);
+					
+					System.out.println(response2);
+					
+					BufferedInputStream bis = new BufferedInputStream(response2.getEntity().getContent());
+					String filePath = name;
+					File outputFile = new File(filePath);
+					BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile));
+					int inByte;
+					while((inByte = bis.read()) != -1) bos.write(inByte);
+					bis.close();
+					bos.close();
+					self.dispose();
+					
+					
+					response2.close();
+				
+					copyFileToClipboard(outputFile);
+					
+					return;
+				}catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}
+		});
 		contentPane.add(lblAccept);
 		
-		RequestNotification self = this;
 		JLabel lblDecline = new JLabel("decline");
 		lblDecline.addMouseListener(new MouseAdapter() {
 			@Override
@@ -126,4 +179,44 @@ public class RequestNotification extends JFrame {
 		contentPane.add(lblDecline);
 	}
 
+	protected void copyFileToClipboard(File outputFile) {
+		List listOfFiles = new ArrayList();
+		listOfFiles.add(outputFile);
+
+		FileTransferable ft = new FileTransferable(listOfFiles);
+
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ft, new ClipboardOwner() {
+			@Override
+			public void lostOwnership(Clipboard clipboard, Transferable contents) {
+				System.out.println("Lost ownership");
+			}
+		});
+		
+		Main.clipboardNotification(outputFile);
+		this.dispose();
+	}
+
+	public static class FileTransferable implements Transferable {
+
+		private List listOfFiles;
+
+		public FileTransferable(List listOfFiles) {
+			this.listOfFiles = listOfFiles;
+		}
+
+		@Override
+		public DataFlavor[] getTransferDataFlavors() {
+			return new DataFlavor[] { DataFlavor.javaFileListFlavor };
+		}
+
+		@Override
+		public boolean isDataFlavorSupported(DataFlavor flavor) {
+			return DataFlavor.javaFileListFlavor.equals(flavor);
+		}
+
+		@Override
+		public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+			return listOfFiles;
+		}
+	}
 }

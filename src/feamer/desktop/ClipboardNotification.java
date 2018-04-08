@@ -3,34 +3,28 @@ package feamer.desktop;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.awt.SystemColor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.SwingConstants;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.JProgressBar;
+import javax.swing.border.EmptyBorder;
 
-public class StartUploadNotification extends JFrame {
+public class ClipboardNotification extends JFrame {
 
 	private JPanel contentPane;
-
-	private File currentFile;
 
 	/**
 	 * Launch the application.
@@ -39,7 +33,7 @@ public class StartUploadNotification extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					RequestNotification frame = new RequestNotification("",0,"");
+					RequestNotification frame = new RequestNotification("", 0, "");
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -51,7 +45,7 @@ public class StartUploadNotification extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public StartUploadNotification() {
+	public ClipboardNotification(File file) {
 
 		setType(javax.swing.JFrame.Type.UTILITY);
 		setResizable(false);
@@ -95,54 +89,34 @@ public class StartUploadNotification extends JFrame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		JProgressBar progressBar = new JProgressBar();
-		progressBar.setBounds(118, 95, 205, 27);
-		contentPane.add(progressBar);
-		progressBar.setVisible(false);
 
-		JLabel lblNewLabel = new JLabel("Drop files here");
-		lblNewLabel.setForeground(Color.WHITE);
-		lblNewLabel.setBackground(SystemColor.control);
-		lblNewLabel.setFont(new Font("Arial", Font.PLAIN, 15));
-		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNewLabel.setBounds(118, 29, 205, 62);
-		contentPane.add(lblNewLabel);
-		
-		lblNewLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+		JLabel lblHeyJrgWhat = new JLabel("File was copied into your clipboard.");
+		lblHeyJrgWhat.setForeground(Color.WHITE);
+		lblHeyJrgWhat.setFont(new Font("Arial", Font.BOLD, 16));
+		lblHeyJrgWhat.setBounds(118, 29, 205, 55);
+		lblHeyJrgWhat.setUI(MultiLineLabelUI.labelUI);
+		contentPane.add(lblHeyJrgWhat);
 
-		JLabel lblAccept = new JLabel("transfer");
-		lblAccept.setHorizontalAlignment(SwingConstants.CENTER);
+		ClipboardNotification self = this;
+		JLabel lblAccept = new JLabel("open file");
+		lblAccept.setHorizontalAlignment(SwingConstants.LEFT);
 		lblAccept.setForeground(new Color(0, 173, 239));
 		lblAccept.setFont(new Font("Arial", Font.BOLD, 16));
-		lblAccept.setBounds(118, 97, 79, 25);
+		lblAccept.setBounds(117, 82, 85, 25);
 		lblAccept.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		contentPane.add(lblAccept);
-
-		StartUploadNotification self = this;
-		
-		lblNewLabel.setTransferHandler(new FileDropHandler(files -> {
-			if (files == null || files.size() == 0) {
-				return;
-			}
-			this.currentFile = files.get(0);
-			lblNewLabel.setText(files.get(0).getName());
-		}));
-		
 		lblAccept.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				FeamerPreferences.getInstance().transferFile(self.currentFile, progress -> {
-					progressBar.setValue((int)(progress));
-					progressBar.setVisible(true);
-					if(progress>99) {
-						self.dispose();
-					}
-				});
+				try {
+					Desktop.getDesktop().open(new File(file.getAbsolutePath()));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
-		
-		JLabel lblDecline = new JLabel("cancel");
+		contentPane.add(lblAccept);
+
+		JLabel lblDecline = new JLabel("dismiss");
 		lblDecline.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
@@ -152,11 +126,29 @@ public class StartUploadNotification extends JFrame {
 		lblDecline.setHorizontalAlignment(SwingConstants.CENTER);
 		lblDecline.setForeground(new Color(255, 106, 0));
 		lblDecline.setFont(new Font("Arial", Font.BOLD, 16));
-		lblDecline.setBounds(222, 97, 79, 25);
+		lblDecline.setBounds(218, 82, 79, 25);
 		lblDecline.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		StartUploadNotification rn = this;
 
 		contentPane.add(lblDecline);
+		
+		JLabel lblShowInExplorer = new JLabel("show file");
+		lblShowInExplorer.setHorizontalAlignment(SwingConstants.LEFT);
+		lblShowInExplorer.setForeground(new Color(0, 173, 239));
+		lblShowInExplorer.setFont(new Font("Arial", Font.BOLD, 16));
+		lblShowInExplorer.setBounds(117, 110, 183, 25);
+		lblShowInExplorer.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		lblShowInExplorer.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				try {
+					Desktop.getDesktop().open(new File(file.getAbsoluteFile().getParentFile().getAbsolutePath()));
+					self.dispose();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				self.dispose();
+			}
+		});
+		contentPane.add(lblShowInExplorer);
 	}
-
 }

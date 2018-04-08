@@ -15,5 +15,7 @@
 	<classpathentry kind="lib" path="lib/mslinks-1.0.4.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_161/lib/ext/jfxrt.jar"/>
 	<classpathentry kind="lib" path="lib/Java-WebSocket-1.3.8.jar"/>
+	<classpathentry kind="lib" path="lib/core-3.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/javase-3.3.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
