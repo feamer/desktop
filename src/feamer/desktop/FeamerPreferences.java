@@ -150,6 +150,7 @@ public class FeamerPreferences {
 				} else {
 				}
 				response2.close();
+				callback.accept(110);
 				if (terminateAtEnd) {
 					System.exit(1);
 				}
@@ -182,6 +183,7 @@ public class FeamerPreferences {
 				} else {
 				}
 				response2.close();
+				callback.accept(110);
 				if (terminateAtEnd) {
 					System.exit(1);
 				}

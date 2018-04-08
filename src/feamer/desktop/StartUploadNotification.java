@@ -38,10 +38,16 @@ public class StartUploadNotification extends JFrame {
 
 	private String user = null;
 
+	private boolean terminateAtEnd = false;
+
 	/**
 	 * Create the frame.
 	 */
 	public StartUploadNotification(String filepath, String type) {
+
+		if (filepath != null) {
+			this.terminateAtEnd = true;
+		}
 
 		setType(javax.swing.JFrame.Type.UTILITY);
 		setResizable(false);
@@ -120,9 +126,9 @@ public class StartUploadNotification extends JFrame {
 					FeamerPreferences.getInstance().transferFileToFriend(self.currentFile, this.user, progress -> {
 						progressBar.setValue((int) (progress));
 						progressBar.setVisible(true);
-					}, true);
-				}else {
-					
+					}, this.terminateAtEnd);
+				} else {
+
 				}
 			}
 
@@ -153,12 +159,16 @@ public class StartUploadNotification extends JFrame {
 			}
 			this.currentFile = files.get(0);
 			lblNewLabel.setText(files.get(0).getName());
-			
-			if(type != null && type.equals("friend")) {
+
+			if (type != null && type.equals("friend") && this.user != null) {
 				FeamerPreferences.getInstance().transferFileToFriend(self.currentFile, this.user, progress -> {
 					progressBar.setValue((int) (progress));
 					progressBar.setVisible(true);
-				}, true);
+					System.out.println("progress: "+progress);
+					if(progress > 100) {
+						self.dispose();
+					}
+				}, this.terminateAtEnd);
 			}
 		}));
 
@@ -168,7 +178,9 @@ public class StartUploadNotification extends JFrame {
 				FeamerPreferences.getInstance().transferFile(self.currentFile, progress -> {
 					progressBar.setValue((int) (progress));
 					progressBar.setVisible(true);
-					if (progress > 99) {
+
+					System.out.println("progress: "+progress);
+					if(progress > 100) {
 						self.dispose();
 					}
 				}, false);
@@ -205,8 +217,11 @@ public class StartUploadNotification extends JFrame {
 					FeamerPreferences.getInstance().transferFile(self.currentFile, progress -> {
 						progressBar.setValue((int) (progress));
 						progressBar.setVisible(true);
-
-					}, true);
+						System.out.println("progress: "+progress);
+						if(progress > 100) {
+							self.dispose();
+						}
+					}, this.terminateAtEnd);
 				}
 			}
 		}

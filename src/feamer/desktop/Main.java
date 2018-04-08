@@ -111,10 +111,19 @@ public class Main {
 			openConfigWindow();
 		});
 		
-		MenuItem startUploadItem = new MenuItem("transfer file");
+		MenuItem startUploadItem = new MenuItem("feamer (my devices)");
 		
 		startUploadItem.addActionListener((ActionEvent ae)->{
-			StartUploadNotification window = new StartUploadNotification(null, null);
+			StartUploadNotification window = new StartUploadNotification(null, "me");
+			Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
+			queue = new NotificationQueue();
+			queue.add(note);
+		});
+		
+		MenuItem startFriendUploadItem = new MenuItem("feamer (my friends)");
+		
+		startFriendUploadItem.addActionListener((ActionEvent ae)->{
+			StartUploadNotification window = new StartUploadNotification(null, "friend");
 			Notification note = new Notification(window, WindowPosition.TOPRIGHT, 25, 25, 25000);
 			queue = new NotificationQueue();
 			queue.add(note);
@@ -129,6 +138,7 @@ public class Main {
 		
 		// Add components to pop-up menu
 		popup.add(startUploadItem);
+		popup.add(startFriendUploadItem);
 		popup.add(configItem);
 		popup.add(exitItem);
 
